@@ -27,4 +27,19 @@ contract MoodNftTest is Test {
         moodNft.mintNft();
         console.log(moodNft.tokenURI(0));
     }
+
+    function testFlipToken() public {
+        vm.prank(user);
+        moodNft.mintNft();
+        string memory BeforeFliptokenURI = moodNft.tokenURI(0);
+        console.log("Before flip:", BeforeFliptokenURI);
+
+        vm.prank(user);
+        moodNft.flipMood(0);
+
+        string memory AfterFliptokenURI = moodNft.tokenURI(0);
+        console.log("After flip:", AfterFliptokenURI);
+
+        assert(keccak256(abi.encodePacked(BeforeFliptokenURI)) != keccak256(abi.encodePacked(AfterFliptokenURI)));
+    }
 }
