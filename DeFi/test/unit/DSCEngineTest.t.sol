@@ -52,4 +52,43 @@ contract DSCEngineTest is Test {
         dsce.depositCollateral(weth, 0);
         vm.stopPrank();
     }
+
+    function testTokenNotAllowed() public {
+        vm.startPrank(USER);
+        ERC20Mock bnb = new ERC20Mock("BNB", "BNB", msg.sender, STARTING_ERC20_BALANCE);
+        vm.expectRevert(DSCEngine.DSCEngine__TokenNotAllowed.selector);
+        dsce.depositCollateral(address(bnb), 1e18);
+        vm.stopPrank();
+    }
+
+    function testDepositCollateral() public {
+        vm.startPrank(USER);
+        uint256 amountToDeposit = STARTING_ERC20_BALANCE;
+        ERC20Mock(weth).approve(address(dsce), amountToDeposit);
+        dsce.depositCollateral(weth, amountToDeposit);
+
+        uint256 userCollateralBalance = dsce.getUserCollateralBalance(USER, weth);
+        assertEq(userCollateralBalance, amountToDeposit);
+
+        uint256 contractBalance = ERC20Mock(weth).balanceOf(address(dsce));
+        assertEq(contractBalance, amountToDeposit);
+        vm.stopPrank();
+    }
+
+    function testMintDsc() public {
+        vm.startPrank(USER);
+        uint256 amountToDeposit = STARTING_ERC20_BALANCE;
+        ERC20Mock(weth).approve(address(dsce), amountToDeposit);
+        dsce.depositCollateral(weth, amountToDeposit);
+
+        uint256 dscAmountToMint = 1000e18;
+        dsce.mintDsc(dscAmountToMint);
+
+        uint256 userDscBalance = dsc.balanceOf(USER);
+        assertEq(userDscBalance, dscAmountToMint);
+
+        uint256 contractDscBalance = dsc.balanceOf(address(dsce));
+        assertEq(contractDscBalance, 0);
+        vm.stopPrank();
+    }
 }
