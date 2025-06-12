@@ -17,6 +17,7 @@ import {DeployDSC} from "../../script/DeployDSC.s.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
+import {Handler} from "./Handler.t.sol";
 
 contract OpenInvarientTest is StdInvariant, Test {
     DeployDSC deployer = new DeployDSC();
@@ -25,12 +26,16 @@ contract OpenInvarientTest is StdInvariant, Test {
     HelperConfig config;
     address weth;
     address wbtc;
+    Handler handler;
 
     function setUp() public {
         deployer = new DeployDSC();
         (dsc, dsce, config) = deployer.run();
         (,, weth, wbtc,) = config.activeNetworkConfig();
-        targetContract(address(dsce));
+        // targetContract(address(dsce));
+        handler = new Handler(dsce, dsc);
+        targetContract(address(handler));
+        // hey, don't call redeemcollateral unless there is collateral to redeem
     }
 
     function invariant_protocolMustHaveMoreValueThanTotalSupply() public view {

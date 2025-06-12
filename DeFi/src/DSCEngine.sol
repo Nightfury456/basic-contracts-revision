@@ -22,7 +22,7 @@
 // internal & private view & pure functions
 // external & public view & pure functions
 
-pragma solidity 0.8.19;
+pragma solidity ^0.8.18;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -331,16 +331,12 @@ contract DSCEngine is ReentrancyGuard {
         return ((uint256(price) * ADDITIONAL_FEED_PRECISION) * amount) / PRECISION;
     }
 
-    function getUserCollateralBalance(address owner, address tokenAddress)
+    function getUserCollateralBalance(address user, address tokenAddress)
         public
         view
         returns (uint256 userCollateralBalance)
     {
-        userCollateralBalance = s_collateralDeposited[owner][tokenAddress];
-        if (userCollateralBalance == 0) {
-            return 0;
-        }
-        return userCollateralBalance;
+        return s_collateralDeposited[user][tokenAddress];
     }
 
     function getHealthFactor(address user) external view returns (uint256) {
@@ -349,5 +345,17 @@ contract DSCEngine is ReentrancyGuard {
             revert DSCEngine__HealthFactorIsBroken(userHealthFactor);
         }
         return userHealthFactor;
+    }
+
+    function getCollateralTokens() external view returns (address[] memory) {
+        return s_collateralTokens;
+    }
+
+    function getAccountInformation(address user)
+        external
+        view
+        returns (uint256 totalDscMinted, uint256 collateralValueInUsd)
+    {
+        (totalDscMinted, collateralValueInUsd) = _getAccountInformation(user);
     }
 }
