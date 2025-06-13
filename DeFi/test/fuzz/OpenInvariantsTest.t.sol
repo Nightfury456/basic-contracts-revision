@@ -49,7 +49,15 @@ contract OpenInvarientTest is StdInvariant, Test {
         console.log("weth value: ", wethValue);
         console.log("wbtc value: ", wbtcValue);
         console.log("total supply: ", totalSupply);
+        console.log("times mint is called: ", handler.timesMintIsCalled());
 
         assert(wethValue + wbtcValue >= totalSupply);
+    }
+
+    function invariant_getterShouldNotRevert() public view {
+        address user = vm.addr(1); // Use a fixed address for testing purposes
+        // Put all getters in here
+        dsce.getCollateralTokens();
+        dsce.getHealthFactor(user);
     }
 }
