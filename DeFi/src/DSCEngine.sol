@@ -358,4 +358,8 @@ contract DSCEngine is ReentrancyGuard {
     {
         (totalDscMinted, collateralValueInUsd) = _getAccountInformation(user);
     }
+
+    function getCollateralTokenPriceFeed(address token) external view isAllowedToken(token) returns (address) {
+        return s_priceFeeds[token];
+    }
 }

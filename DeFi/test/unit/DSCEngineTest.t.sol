@@ -237,75 +237,27 @@ contract DSCEngineTest is Test {
     // Liquidation Tests //
     ///////////////////////
 
-    // function testLiquidate_Succeeds() public depositCollateral mintDsc {
-    //     // Drop price to make health factor < 1
-    //     // Assume 1 WETH = $1000 initially, now drop to $400
-    //     mockPriceFeed(address(weth), 400e8); // if using ChainlinkAggregatorMock
+    function testMoreThanZero() public {
+        address token = weth;
+        vm.startPrank(LIQUIDATOR);
+        vm.expectRevert(DSCEngine.DSCEngine__NeedsMoreThanZero.selector);
+        dsce.liquidate(token, USER, 0);
+        vm.stopPrank();
+    }
 
-    //     // Liquidator gets DSC
-    //     vm.startPrank(LIQUIDATOR);
-    //     dsc.mint(LIQUIDATOR, amountToMint);
-    //     dsc.approve(address(dsce), amountToMint);
+    function testLiquidationRevertIfHealthFactorOk() public depositCollateral mintDsc {
+        uint256 userHealthFactor = dsce.getHealthFactor(USER);
 
-    //     // Liquidate
-    //     dsce.liquidate(address(weth), USER, amountToMint);
-    //     vm.stopPrank();
+        vm.startPrank(LIQUIDATOR);
+        uint256 amountToLiquidate = 1 ether; // 1 ether worth of collateral
+        vm.expectRevert(abi.encodeWithSelector(DSCEngine.DSCEngine__HealthFactorOk.selector, userHealthFactor));
+        dsce.liquidate(weth, USER, amountToLiquidate);
+        vm.stopPrank();
+    }
 
-    //     // Check that:
-    //     // - LIQUIDATOR received some collateral
-    //     // - USER has less or no collateral
-    //     // - DSC debt is reduced
-    //     uint256 liquidatorCollateral = dsce.getCollateralBalanceOfUser(LIQUIDATOR, address(weth));
-    //     assertGt(liquidatorCollateral, 0);
-    //     assertEq(dsce.getDscMinted(USER), 0);
-    // }
-
-    // function testLiquidate_RevertsIfHealthFactorOk() public {
-    //     uint256 depositAmount = 10 ether;
-    //     uint256 mintAmount = 5e18;
-
-    //     // USER sets up
-    //     vm.startPrank(USER);
-    //     ERC20Mock(weth).mint(USER, depositAmount);
-    //     weth.approve(address(dsce), depositAmount);
-    //     dsce.depositCollateral(address(weth), depositAmount);
-    //     dsce.mintDsc(mintAmount);
-    //     vm.stopPrank();
-
-    //     // Price is still safe
-    //     vm.startPrank(LIQUIDATOR);
-    //     dsc.mint(LIQUIDATOR, mintAmount);
-    //     dsc.approve(address(dsce), mintAmount);
-
-    //     vm.expectRevert(DSCEngine.DSCEngine__HealthFactorOk.selector);
-    //     dsce.liquidate(address(weth), USER, mintAmount);
-    //     vm.stopPrank();
-    // }
-
-    // function testLiquidate_RevertsIfHealthFactorNotImproved() public {
-    //     uint256 depositAmount = 10 ether;
-    //     uint256 mintAmount = 5e18;
-
-    //     // Setup
-    //     vm.startPrank(USER);
-    //     ERC20Mock(weth).mint(USER, depositAmount);
-    //     weth.approve(address(dsce), depositAmount);
-    //     dsce.depositCollateral(address(weth), depositAmount);
-    //     dsce.mintDsc(mintAmount);
-    //     vm.stopPrank();
-
-    //     // Price drops
-    //     mockPriceFeed(address(weth), 300e8);
-
-    //     // Liquidator tries to cover too little debt
-    //     vm.startPrank(LIQUIDATOR);
-    //     dsc.mint(LIQUIDATOR, 1e18);
-    //     dsc.approve(address(dsce), 1e18);
-
-    //     vm.expectRevert(DSCEngine.DSCEngine__HealthFactorNotImproved.selector);
-    //     dsce.liquidate(address(weth), USER, 1e18);
-    //     vm.stopPrank();
-    // }
+    ///////////////////////////
+    // Getter Function Tests //
+    ///////////////////////////
 
     function testGetAccountCollateralValue() public depositCollateral {
         vm.startPrank(USER);
